@@ -20,3 +20,7 @@ class Crawler:
     def implicitly_wait(self, implicitly_wait_time=5, min=0.3, max=2):
         self.driver.implicitly_wait(implicitly_wait_time)
         self.wait_randomly(min, max)
+
+    def move_to_top_url(self):
+        self.driver.get(self.config['top_url'])
+        self.implicitly_wait()
