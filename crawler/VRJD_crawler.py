@@ -85,3 +85,6 @@ def main():
     with open('./VRJD-crawler-config.yaml', 'r') as f:
         config = yaml.load(f)
     crawler = VRJD_Crawler(config)
+
+if __name__ == '__main__':
+    main()
