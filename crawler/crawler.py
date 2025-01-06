@@ -5,11 +5,14 @@ import yaml
 import selenium
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 
 class Crawler:
     def __init__(self, config):
         self.config = config
-        self.driver = webdriver.Chrome()
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome(options=self.chrome_options)
 
     def wait_randomly(self, min=0.3, max=2):
         time.sleep(random.uniform(min, max))
