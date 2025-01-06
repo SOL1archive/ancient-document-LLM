@@ -25,3 +25,7 @@ class Crawler:
     def move_to_top_url(self):
         self.driver.get(self.config['top_url'])
         self.implicitly_wait()
+
+    def execute_script_and_wait(self, js_code):
+        self.driver.execute_script(js_code)
+        self.implicitly_wait()

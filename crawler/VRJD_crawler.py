@@ -1,6 +1,7 @@
 import random
 import yaml
 import re
+from pprint import pprint
 
 from tqdm.auto import tqdm
 import numpy as np
@@ -54,39 +55,41 @@ class VRJD_Crawler(Crawler):
     def get_given_king(self, king_name):
         if self.target_df is None:
             self.get_target_lt()
+        self.move_to_top_url()
         result = dict()
         js_code = self.target_df.loc[self.target_df['name'] == king_name, 'href'].iloc[0]
-        self.driver.execute(js_code)
+        self.execute_script_and_wait(js_code)
+        
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
-        
-        collections_js_code = soup.find(attrs='king_year1 clear2').find('span')['onclick']
-        self.driver.execute(collections_js_code)
-        result['collection'] = self.parse_collection()
+        collections_js_code = soup.find('ul', 'king_year1 clear2').find('span')['onclick']
+        self.execute_script_and_wait(collections_js_code)
+        result['collection'] = self.parse_collection(self.driver.page_source)
         self.driver.back()
 
         return result
 
-    def parse_collection(self):
-        collection_html = self.driver.page_source
+    def parse_collection(self, collection_html):
         collection_soup = BeautifulSoup(collection_html, 'html.parser')
-        original_text = (collection_soup.find('div', 'ins_view_in ins_right_in')
-                                        .find('p', 'paragraph')
-                                        .text
+        original_text = (collection_soup.find('div', 'ins_view_in ins_left_in')
+                                        .find_all('p', 'paragraph')
         )
+        original_text = '\n'.join([tag.text for tag in original_text])
         translated_text = (collection_soup.find('div', 'ins_view_in ins_right_in')
-                                          .find('p', 'paragraph')
-                                          .text
+                                          .find_all('p', 'paragraph')
         )
+        translated_text = '\n'.join([tag.text for tag in translated_text])
         return {
             'original_text': original_text,
             'translated_text': translated_text,
         }
 
 def main():
-    with open('./VRJD-crawler-config.yaml', 'r') as f:
-        config = yaml.load(f)
+    with open('crawler/VRJD-crawler-config.yaml', 'r') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
     crawler = VRJD_Crawler(config)
+    crawler.get_target_lt()
+    print(crawler.get_given_king('순종')['collection']['original_text'])
 
 if __name__ == '__main__':
     main()
