@@ -48,14 +48,14 @@ class VRJD_Crawler(Crawler):
                 'name': name,
                 'start_year': start_year,
             })
-        self.target_df = pd.DataFrame(target_tags)
+        self.target_df = pd.DataFrame(result_lt)
         return self.target_df
     
     def get_given_king(self, king_name):
         if self.target_df is None:
             self.get_target_lt()
         result = dict()
-        js_code = self.target_df.loc[self.target_df['name'] == king_name, 'href']
+        js_code = self.target_df.loc[self.target_df['name'] == king_name, 'href'].iloc[0]
         self.driver.execute(js_code)
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
@@ -64,6 +64,8 @@ class VRJD_Crawler(Crawler):
         self.driver.execute(collections_js_code)
         result['collection'] = self.parse_collection()
         self.driver.back()
+
+        return result
 
     def parse_collection(self):
         collection_html = self.driver.page_source
