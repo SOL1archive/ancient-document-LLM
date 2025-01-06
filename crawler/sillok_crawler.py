@@ -85,7 +85,7 @@ class VRJD_Crawler(Crawler):
         }
 
 def main():
-    with open('crawler/VRJD-crawler-config.yaml', 'r') as f:
+    with open('./sillok-crawler-config.yaml', 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     crawler = VRJD_Crawler(config)
     crawler.get_target_lt()
