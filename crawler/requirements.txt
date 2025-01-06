@@ -1,2 +1,6 @@
+pyyaml
 bs4
 selenium
+numpy
+pandas
+tqdm
