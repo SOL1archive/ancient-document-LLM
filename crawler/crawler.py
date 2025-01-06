@@ -11,7 +11,8 @@ class Crawler:
     def __init__(self, config):
         self.config = config
         self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless")
+        if self.config['headless']:
+            self.chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(options=self.chrome_options)
 
     def wait_randomly(self, min=0.3, max=2):
