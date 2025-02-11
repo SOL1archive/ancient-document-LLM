@@ -42,7 +42,7 @@ class Crawler:
             data: Union[list, dict, pd.DataFrame, pd.Series],
             name: str,
             path: Union[Path, str, None]=None, 
-            format: Literal['json', 'jsonl', 'csv', 'pickle']='json'):
+            format: Literal['json', 'jsonl', 'csv', 'pickle']='jsonl'):
         if path is None:
             path = self.config['target_path']
         path = Path(path) / (name + '.' + format)
