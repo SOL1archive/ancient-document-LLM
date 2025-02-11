@@ -1,0 +1,2 @@
+- [ ] 총서 파서 고도화
+    - [ ] 현재 구현된 총서 아래에 텍스트가 있는 경우[(ex. 순종실록 총서)](https://sillok.history.go.kr/id/kzb_000) 뿐만 아니라, 총서 아래에 별도의 항목이 있는 경우[(ex. 태조실록 총서)](https://sillok.history.go.kr/search/inspectionDayList.do), 총서가 없는 경우[(ex. 고종실록)](https://sillok.history.go.kr/search/inspectionMonthList.do;jsessionid=FLkpYg6eHiIFR9ndsKqTX9eENmUmdXUPIEsC783o.node10) 모두 구현하기.

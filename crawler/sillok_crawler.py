@@ -64,18 +64,20 @@ class VRJD_Crawler(Crawler):
         if self.target_df is None:
             self.get_target_df()
         self.move_to_top_url()
-        result = dict()
         js_code = self.target_df.loc[self.target_df['name'] == king_name, 'href'].iloc[0]
         self.execute_script_and_wait(js_code)
         
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
+        result = dict()
+        # 총서 파싱
         collections_js_code = soup.find('ul', 'king_year1 clear2').find('span')['onclick']
         self.execute_script_and_wait(collections_js_code)
-        # 총서 파싱
-        result = {
-            'collection': self.parse_collection(self.driver.page_source),
-        }
+        result['collection'] = self.parse_collection(self.driver.page_source)
+
+        # 본문 파싱
+        main_js_code = soup.find('ul')
+        # 부록 파싱
 
         self.driver.back()
         return result
