@@ -21,8 +21,10 @@ class VRJD_Crawler(Crawler):
 
     def crawl(self):
         self.get_target_lt()
+        
         for king in tqdm(self.target_df['name']):
-            self.get_given_king(king)
+            data = self.get_given_king(king)
+            self.store(data)
             self.move_to_top_url()
 
     def get_target_lt(self) -> pd.DataFrame:

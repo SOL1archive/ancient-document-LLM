@@ -1,2 +1,3 @@
 top_url: https://sillok.history.go.kr/main/main.do;jsessionid=jE5ZRk-K-MuFp_6jeBAiv8QNTeJlQc0qZro-hbY0.node10
 headless: true
+target_path: ../data

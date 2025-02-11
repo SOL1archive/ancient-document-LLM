@@ -1,7 +1,13 @@
-from typing import Union
+from typing import Union, Literal
 import time
 import random
 import yaml
+from pathlib import Path
+import pickle
+
+import json
+import numpy as np
+import pandas as pd
 
 import selenium
 from selenium import webdriver
@@ -30,3 +36,30 @@ class Crawler:
     def execute_script_and_wait(self, js_code: str):
         self.driver.execute_script(js_code)
         self.implicitly_wait()
+
+    def store(
+            self,
+            data: Union[list, dict, pd.DataFrame, pd.Series],
+            name: str,
+            path: Union[Path, str, None]=None, 
+            format: Literal['json', 'jsonl', 'csv', 'pickle']='json'):
+        if path is None:
+            path = self.config['target_path']
+        path = Path(path) / (name + '.' + format)
+        if isinstance(data, pd.DataFrame) or isinstance(data, pd.Series):
+            if format == 'json':
+                data.to_json(path)
+            elif format == 'jsonl':
+                data.to_json(path, lines=True)
+            elif format == 'csv':
+                data.to_csv(path)
+            elif format == 'pickle':
+                data.to_pickle(path)
+        else:
+            if format == 'json' or format == 'jsonl':
+                with open(path, 'w') as f:
+                    json.dump(data, f)
+            elif format == 'csv':
+                pd.DataFrame(data).to_csv(path)
+            elif format == 'pickle':
+                pickle.dump(data, f)
