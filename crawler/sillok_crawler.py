@@ -1,4 +1,4 @@
-import random
+from typing import union
 from pathlib import Path
 import yaml
 import re
@@ -25,7 +25,7 @@ class VRJD_Crawler(Crawler):
             self.get_given_king(king)
             self.move_to_top_url()
 
-    def get_target_lt(self):
+    def get_target_lt(self) -> pd.DataFrame:
         self.move_to_top_url()
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
@@ -53,7 +53,7 @@ class VRJD_Crawler(Crawler):
         self.target_df = pd.DataFrame(result_lt)
         return self.target_df
     
-    def get_given_king(self, king_name):
+    def get_given_king(self, king_name: str) -> dict:
         if self.target_df is None:
             self.get_target_lt()
         self.move_to_top_url()
@@ -70,7 +70,7 @@ class VRJD_Crawler(Crawler):
 
         return result
 
-    def parse_collection(self, collection_html):
+    def parse_collection(self, collection_html) -> dict:
         collection_soup = BeautifulSoup(collection_html, 'html.parser')
         original_text = (collection_soup.find('div', 'ins_view_in ins_left_in')
                                         .find_all('p', 'paragraph')
