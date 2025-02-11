@@ -88,8 +88,8 @@ class VRJD_Crawler(Crawler):
         )
         translated_text = '\n'.join([tag.text for tag in translated_text])
         return {
-            'original_text': original_text,
-            'translated_text': translated_text.strip(),
+            'original_text': self.preprocess_text(original_text),
+            'translated_text': self.preprocess_text(translated_text),
         }
 
 def main():
