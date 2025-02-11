@@ -42,7 +42,7 @@ class Crawler:
             data: Union[list, dict, pd.DataFrame, pd.Series],
             name: str,
             path: Union[Path, str, None]=None, 
-            format: Literal['json', 'jsonl', 'csv', 'pickle']='jsonl'):
+            format: Literal['json', 'jsonl', 'csv', 'pickle', 'parquet']='jsonl'):
         if path is None:
             path = self.config['target_path']
         path = Path(path) / (name + '.' + format)
@@ -55,6 +55,8 @@ class Crawler:
                 data.to_csv(path)
             elif format == 'pickle':
                 data.to_pickle(path)
+            elif format == 'parquet':
+                data.to_parquet(path)
         else:
             if format == 'json' or format == 'jsonl':
                 with open(path, 'w') as f:
@@ -63,3 +65,5 @@ class Crawler:
                 pd.DataFrame(data).to_csv(path)
             elif format == 'pickle':
                 pickle.dump(data, f)
+            elif format == 'parquet':
+                raise NotImplementedError

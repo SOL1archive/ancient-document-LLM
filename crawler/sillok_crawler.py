@@ -1,4 +1,4 @@
-from typing import union
+from typing import Union
 from pathlib import Path
 import yaml
 import re
@@ -20,14 +20,19 @@ class VRJD_Crawler(Crawler):
         self.target_df = None
 
     def crawl(self):
-        self.get_target_lt()
+        self.get_target_df()
         
-        for king in tqdm(self.target_df['name']):
+        total_data = []
+        for i, row in tqdm(self.target_df.iterrows()):
+            king = row['name']
             data = self.get_given_king(king)
-            self.store(data)
+            data['name'] = king
+            data['order'] = row['order']
+            data['start_year'] = row['start_year']
+            total_data.append(pd.DataFrame(data))
             self.move_to_top_url()
 
-    def get_target_lt(self) -> pd.DataFrame:
+    def get_target_df(self) -> pd.DataFrame:
         self.move_to_top_url()
         html = self.driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
@@ -57,7 +62,7 @@ class VRJD_Crawler(Crawler):
     
     def get_given_king(self, king_name: str) -> dict:
         if self.target_df is None:
-            self.get_target_lt()
+            self.get_target_df()
         self.move_to_top_url()
         result = dict()
         js_code = self.target_df.loc[self.target_df['name'] == king_name, 'href'].iloc[0]
@@ -67,9 +72,12 @@ class VRJD_Crawler(Crawler):
         soup = BeautifulSoup(html, 'html.parser')
         collections_js_code = soup.find('ul', 'king_year1 clear2').find('span')['onclick']
         self.execute_script_and_wait(collections_js_code)
-        result['collection'] = self.parse_collection(self.driver.page_source)
-        self.driver.back()
+        # 총서 파싱
+        result = {
+            'collection': self.parse_collection(self.driver.page_source),
+        }
 
+        self.driver.back()
         return result
     
     def preprocess_text(self, text: str) -> str:
@@ -82,14 +90,14 @@ class VRJD_Crawler(Crawler):
         original_text = (collection_soup.find('div', 'ins_view_in ins_left_in')
                                         .find_all('p', 'paragraph')
         )
-        original_text = '\n'.join([tag.text for tag in original_text])
+        original_text = '\n'.join([self.preprocess_text(tag.text) for tag in original_text])
         translated_text = (collection_soup.find('div', 'ins_view_in ins_right_in')
                                           .find_all('p', 'paragraph')
         )
-        translated_text = '\n'.join([tag.text for tag in translated_text])
+        translated_text = '\n'.join([self.preprocess_text(tag.text) for tag in translated_text])
         return {
-            'original_text': self.preprocess_text(original_text),
-            'translated_text': self.preprocess_text(translated_text),
+            'original_text': original_text,
+            'translated_text': translated_text,
         }
 
 def main():
@@ -97,7 +105,7 @@ def main():
     with open(main_path / 'sillok-crawler-config.yaml', 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     crawler = VRJD_Crawler(config)
-    crawler.get_target_lt()
+    crawler.get_target_df()
     print(crawler.target_df)
     print('=' * 60)
     pprint(crawler.get_given_king('순종'))
