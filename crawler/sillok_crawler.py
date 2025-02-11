@@ -69,6 +69,11 @@ class VRJD_Crawler(Crawler):
         self.driver.back()
 
         return result
+    
+    def preprocess_text(self, text: str) -> str:
+        return (text.strip()
+                    .replace('\t', ' ')
+        )
 
     def parse_collection(self, collection_html) -> dict:
         collection_soup = BeautifulSoup(collection_html, 'html.parser')
