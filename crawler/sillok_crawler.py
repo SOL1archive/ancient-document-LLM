@@ -1,4 +1,5 @@
 import random
+from pathlib import Path
 import yaml
 import re
 from pprint import pprint
@@ -81,15 +82,18 @@ class VRJD_Crawler(Crawler):
         translated_text = '\n'.join([tag.text for tag in translated_text])
         return {
             'original_text': original_text,
-            'translated_text': translated_text,
+            'translated_text': translated_text.strip(),
         }
 
 def main():
-    with open('./sillok-crawler-config.yaml', 'r') as f:
+    main_path = Path(__file__).parent
+    with open(main_path / 'sillok-crawler-config.yaml', 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
     crawler = VRJD_Crawler(config)
     crawler.get_target_lt()
-    print(crawler.get_given_king('순종')['collection']['original_text'])
+    print(crawler.target_df)
+    print('=' * 60)
+    pprint(crawler.get_given_king('순종'))
 
 if __name__ == '__main__':
     main()
