@@ -1,5 +1,7 @@
 from typing import Union
 from pathlib import Path
+
+import requests
 import yaml
 import re
 from pprint import pprint
@@ -71,9 +73,12 @@ class VRJD_Crawler(Crawler):
         soup = BeautifulSoup(html, 'html.parser')
         result = dict()
         # 총서 파싱
+
         collections_js_code = soup.find('ul', 'king_year1 clear2').find('span')['onclick']
         self.execute_script_and_wait(collections_js_code)
-        result['collection'] = self.parse_collection(self.driver.page_source)
+
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        result['collection'] = self.parse_collection(soup)
 
         # 본문 파싱
         main_js_code = soup.find('ul')
@@ -87,16 +92,48 @@ class VRJD_Crawler(Crawler):
                     .replace('\t', ' ')
         )
 
-    def parse_collection(self, collection_html) -> dict:
-        collection_soup = BeautifulSoup(collection_html, 'html.parser')
-        original_text = (collection_soup.find('div', 'ins_view_in ins_left_in')
-                                        .find_all('p', 'paragraph')
-        )
-        original_text = '\n'.join([self.preprocess_text(tag.text) for tag in original_text])
-        translated_text = (collection_soup.find('div', 'ins_view_in ins_right_in')
-                                          .find_all('p', 'paragraph')
-        )
+    def parse_collection(self, page_soup) -> dict:
+        if page_soup.find('div','ins_list'):
+            return self.parse_list(page_soup)
+        else:
+            return self.parse_content(page_soup)
+
+    def parse_list(self, page_soup) -> dict:
+        original_texts = []
+        translated_texts = []
+
+        session = requests.Session()
+
+        for li in page_soup.select('li'):
+            a = li.find('a')
+            if not a or 'searchView' not in a.get('href', ''):
+                continue
+
+            content_id = a['href'].split("'")[1]
+            content_url = f"https://sillok.history.go.kr/id/{content_id}"
+            resp = session.get(content_url, timeout=10)
+            resp.raise_for_status()
+
+            content_soup = BeautifulSoup(resp.text, 'html.parser')
+            parsed = self.parse_content(content_soup)
+
+            original_texts.append(parsed['original_text'])
+            translated_texts.append(parsed['translated_text'])
+
+        return {
+            'original_text': '\n'.join(original_texts),
+            'translated_text': '\n'.join(translated_texts),
+        }
+
+    def parse_content(self, page_soup) -> dict:
+        translated_text = (page_soup.find('div', 'ins_view_in ins_left_in')
+                         .find_all('p', 'paragraph')
+                         )
         translated_text = '\n'.join([self.preprocess_text(tag.text) for tag in translated_text])
+        original_text = (page_soup.find('div', 'ins_view_in ins_right_in')
+                           .find_all('p', 'paragraph')
+                           )
+        original_text = '\n'.join([self.preprocess_text(tag.text) for tag in original_text])
         return {
             'original_text': original_text,
             'translated_text': translated_text,
@@ -110,7 +147,7 @@ def main():
     crawler.get_target_df()
     print(crawler.target_df)
     print('=' * 60)
-    pprint(crawler.get_given_king('순종'))
+    pprint(crawler.get_given_king('세조'))
 
 if __name__ == '__main__':
     main()
