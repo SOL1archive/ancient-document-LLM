@@ -126,14 +126,14 @@ class VRJD_Crawler(Crawler):
         }
 
     def parse_content(self, page_soup) -> dict:
-        original_text = (page_soup.find('div', 'ins_view_in ins_left_in')
+        translated_text = (page_soup.find('div', 'ins_view_in ins_left_in')
                          .find_all('p', 'paragraph')
                          )
-        original_text = '\n'.join([self.preprocess_text(tag.text) for tag in original_text])
-        translated_text = (page_soup.find('div', 'ins_view_in ins_right_in')
+        translated_text = '\n'.join([self.preprocess_text(tag.text) for tag in translated_text])
+        original_text = (page_soup.find('div', 'ins_view_in ins_right_in')
                            .find_all('p', 'paragraph')
                            )
-        translated_text = '\n'.join([self.preprocess_text(tag.text) for tag in translated_text])
+        original_text = '\n'.join([self.preprocess_text(tag.text) for tag in original_text])
         return {
             'original_text': original_text,
             'translated_text': translated_text,
