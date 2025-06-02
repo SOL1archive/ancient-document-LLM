@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TrainConfig:
-    base_model_ckpt: str = 'Qwen/Qwen2.5-0.5B'
-    model_ckpt: str = 'Qwen/Qwen2.5-0.5B'
+    base_model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
+    model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
 
-    sliding_window: int = 512
+    sliding_window: int = 1024
     
     train_ds_path: str = '../data/train'
     test_ds_path: str = '../data/test'
@@ -15,7 +15,7 @@ class TrainConfig:
     input_text_feat_name: str = 'original_text'
     label_text_feat_name: str = 'translated_text'
     num_train_samples: int = 35_715
-    max_length: int = 1024 + 512 + 256
+    max_length: int = 4096
     
     train_method: Literal['full', 'LoRA', 'QLoRA'] = 'QLoRA'
     # LoRA / QLoRA Configs(only used when `train_method in ['LoRA', 'QLoRA']`)
@@ -24,10 +24,11 @@ class TrainConfig:
     lora_alpha: int = 32
     lora_dropout: float = 0.1
 
-    eval_steps: int = 5000
+    eval_steps: int = 2500
 
-    num_epochs: int = 1
-    batch_size: int = 4
+    num_epochs: int = 2
+    train_batch_size: int = 4
+    eval_batch_size: int = 2
     learning_rate: float = 1e-5
     scheduler_type: str = 'linear'
     warmup_ratio: float = 0.03

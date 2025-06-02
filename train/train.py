@@ -84,11 +84,13 @@ def main():
 
     training_args = SFTConfig(
         max_seq_length=config.max_length,
-        max_steps=int(floor(num_samples // config.batch_size)),
+        max_steps=int(floor(num_samples // config.train_batch_size)) * config.num_epochs,
         learning_rate=config.learning_rate,
-        per_device_train_batch_size=config.batch_size,
+        per_device_train_batch_size=config.train_batch_size,
+        per_device_eval_batch_size=config.eval_batch_size,
         num_train_epochs=config.num_epochs,
         lr_scheduler_type=config.scheduler_type,
+        gradient_accumulation_steps=2,
 
         do_eval=True,
         eval_strategy='steps',
