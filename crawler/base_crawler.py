@@ -13,8 +13,12 @@ import selenium
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
-class Crawler:
+class BaseCrawler:
     def __init__(self, config: dict):
         self.config = config
         self.chrome_options = Options()
@@ -33,9 +37,31 @@ class Crawler:
         self.driver.get(self.config['top_url'])
         self.implicitly_wait()
 
-    def execute_script_and_wait(self, js_code: str):
+    def execute_script_and_wait(
+            self,
+            js_code: str,
+            timeout: float = 8.0,  # 필요시 조정
+    ):
+        """JS 실행 후 ① 페이지 리로드 또는 ② ins_list/ins_view 등장까지 대기"""
+        # (1) 현재 <html> 태그 핸들 → 페이지가 새로 그려지면 stale 이 됨
+        old_root = self.driver.find_element(By.TAG_NAME, "html")
+
+        # JS 실행
         self.driver.execute_script(js_code)
-        self.implicitly_wait()
+
+        # (2) ① 페이지가 reload 되어 old_root 가 stale 되거나,
+        #    ② ins_list 또는 ins_view_in 이 등장할 때까지 기다림
+        cond_any = lambda d: (
+                EC.staleness_of(old_root)(d) or
+                d.find_elements(By.CSS_SELECTOR,
+                                "div.ins_list, div.ins_view_in.ins_left_in")
+        )
+
+        try:
+            WebDriverWait(self.driver, timeout).until(cond_any)
+        except TimeoutException:
+            # 그래도 안 뜨면 한 번 더 0.5~1s 랜덤 슬립 후 진행
+            self.wait_randomly(1.0, 2.0)
 
     def store(
             self,
