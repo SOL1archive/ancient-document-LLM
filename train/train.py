@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from math import floor
+from pprint import pprint
 
 import torch
 import torch.nn as nn
@@ -11,19 +12,20 @@ from torch.utils.data import DataLoader
 
 import transformers
 from datasets import Dataset, DatasetDict, load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, SchedulerType
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, SchedulerType
 from transformers import BitsAndBytesConfig
 from peft import LoraConfig, TaskType, get_peft_model
 from trl import SFTConfig, SFTTrainer
 
 from train_config import TrainConfig
-from utils import Seq2SeqTokenizeMapWrapper, Evaluator
+from utils import TokenizeMapWrapper, Evaluator, Seq2SeqFormatter
 
 def main():
     config = TrainConfig()
 
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
+    pprint(config)
 
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -32,10 +34,11 @@ def main():
     else:
         device = torch.device('cpu')
 
-    tokenizer = AutoTokenizer.from_pretrained(config.base_model_ckpt, padding_side='left')
-    tokenizer.padding_side = 'left'
-    #if tokenizer.pad_token is None:
-    #    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer = AutoTokenizer.from_pretrained(config.base_model_ckpt, padding_side="left", use_cache=False)
+    #tokenizer.padding_side = 'left'
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    print(tokenizer)
 
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -43,12 +46,17 @@ def main():
         bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_quant_storage=torch.bfloat16,
     )
+
+    model_config = AutoConfig.from_pretrained(config.model_ckpt)
+    model_config.use_sliding_window = True
+    model_config.sliding_window = config.sliding_window
     model = AutoModelForCausalLM.from_pretrained(
         config.model_ckpt, 
         attn_implementation='flash_attention_2',
         quantization_config=bnb_config, 
         low_cpu_mem_usage=True,
         torch_dtype=torch.bfloat16,
+        use_cache=False,
     ).to(device)
     peft_config = LoraConfig(
         task_type=TaskType.CAUSAL_LM,
@@ -64,15 +72,10 @@ def main():
     train_ds = load_dataset(config.train_ds_path)['train'].shuffle(seed=42)
     test_ds = load_dataset(config.test_ds_path)['test'].shuffle(seed=42)
     
-    prompt_formatter = Seq2SeqTokenizeMapWrapper(
-        tokenizer,
+    prompt_formatter = Seq2SeqFormatter(
         feature=config.input_text_feat_name,
         target=config.label_text_feat_name,
-        option={
-            'max_length': config.max_length,
-            'truncation': True,
-            'padding': 'longest',
-        }
+        tokenizer=tokenizer,
     )
     
     num_samples = len(train_ds)
@@ -104,6 +107,7 @@ def main():
     trainer = SFTTrainer(
         model,
         training_args,
+        processing_class=tokenizer,
         train_dataset=train_ds,
         eval_dataset=test_ds,
         formatting_func=prompt_formatter,

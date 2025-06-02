@@ -1,9 +1,35 @@
 from typing import List
+from pprint import pprint
 import re
 import numpy as np
 import evaluate
 
-class _TokenizeMapWrapper:
+class Seq2SeqFormatter:
+    def __init__(
+            self, 
+            feature, 
+            target, 
+            tokenizer,
+            system_instruction=None, 
+        ):
+        if system_instruction is not None:
+            self.system_instruction = system_instruction
+        else:
+            self.system_instruction = None
+        self.instruction_col_name = feature
+        self.response_col_name = target
+        self.tokenizer = tokenizer
+
+    def __call__(self, example):
+        prompt = [
+            {'role': 'user', 'content': "Problem: " + example[self.instruction_col_name]},
+            {'role': 'assistant', 'content': " Solution: " + example[self.response_col_name]}
+        ]
+        if self.system_instruction is not None:
+            prompt.append({'role': 'system', 'content': self.system_instruction})
+        return self.tokenizer.apply_chat_template(prompt, tokenize=False)
+
+class TokenizeMapWrapper:
     def __init__(self, tokenizer, feature, option=None):
         if option is None:
             option = {
@@ -21,7 +47,7 @@ class _TokenizeMapWrapper:
     def __repr__(self):
         return f'{self.__class__.__name__}(tokenizer={self.tokenizer})'
 
-class Seq2SeqTokenizeMapWrapper(_TokenizeMapWrapper):
+class Seq2SeqTokenizeMapWrapper(TokenizeMapWrapper):
     def __init__(self, tokenizer, feature, target, option=None):
         super().__init__(tokenizer, feature, option)
         self.target = target
@@ -29,8 +55,9 @@ class Seq2SeqTokenizeMapWrapper(_TokenizeMapWrapper):
 
     def seq2seq_tokenize(self, row):
         form_embeddings = self.tokenizer(row[self.feature], **self.option)
-        with self.tokenizer.as_target_tokenizer():
-            correct_form_embeddings = self.tokenizer(row[self.target], **self.option)
+        pprint(form_embeddings)
+        correct_form_embeddings = self.tokenizer(row[self.target], **self.option)
+        pprint(correct_form_embeddings)
 
         return {
             'input_ids': form_embeddings['input_ids'],
@@ -41,7 +68,7 @@ class Seq2SeqTokenizeMapWrapper(_TokenizeMapWrapper):
     def __call__(self, row):
         return self.seq2seq_tokenize(row)
 
-class TokenizeMapWrapper(_TokenizeMapWrapper):
+class SummaryTokenizeMapWrapper(TokenizeMapWrapper):
     def __init__(self, tokenizer, feature, max_token=4096, option=None):
         if option is None:
             option = {
