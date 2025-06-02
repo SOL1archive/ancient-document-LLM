@@ -43,7 +43,6 @@ def main():
         bnb_4bit_compute_dtype=torch.bfloat16,
         bnb_4bit_quant_storage=torch.bfloat16,
     )
-    #model = AutoModelForCausalLM.from_pretrained(config.checkpoint, attn_implementation='flash_attention_2')
     model = AutoModelForCausalLM.from_pretrained(
         config.model_ckpt, 
         attn_implementation='flash_attention_2',
