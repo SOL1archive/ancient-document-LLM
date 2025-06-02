@@ -2,8 +2,8 @@ FROM python:latest
 
 COPY requirements.txt .
 COPY run.sh .
-COPY crawler.py .
-COPY sillok_crawler.py .
+COPY base_crawler.py .
+COPY vrjd_crawler.py .
 COPY sillok-crawler-config.yaml .
 
 RUN apt-get update && apt-get install -y \
