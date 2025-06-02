@@ -25,6 +25,7 @@ class Seq2SeqTokenizeMapWrapper(_TokenizeMapWrapper):
     def __init__(self, tokenizer, feature, target, option=None):
         super().__init__(tokenizer, feature, option)
         self.target = target
+        self.option = option
 
     def seq2seq_tokenize(self, row):
         form_embeddings = self.tokenizer(row[self.feature], **self.option)

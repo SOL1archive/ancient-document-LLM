@@ -7,8 +7,8 @@ class TrainConfig:
     base_model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
     model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
 
-    train_ds_path: str = '../data/train.parquet'
-    test_ds_path: str = '../data/test.parquet'
+    train_ds_path: str = '../data/train'
+    test_ds_path: str = '../data/test'
 
     input_text_feat_name: str = 'original_text'
     label_text_feat_name: str = 'translated_text'
