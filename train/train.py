@@ -70,7 +70,9 @@ def main():
     model.enable_input_require_grads()
 
     train_ds = load_dataset(config.train_ds_path)['train'].shuffle(seed=42)
-    test_ds = load_dataset(config.test_ds_path)['test'].shuffle(seed=42)
+    print(train_ds)
+    test_ds = load_dataset(config.test_ds_path)['test'].shuffle(seed=42).take(1000)
+    print(test_ds)
     
     prompt_formatter = Seq2SeqFormatter(
         feature=config.input_text_feat_name,
@@ -85,17 +87,23 @@ def main():
     training_args = SFTConfig(
         max_seq_length=config.max_length,
         max_steps=int(floor(num_samples // config.train_batch_size)) * config.num_epochs,
+        #max_steps=-1,
         learning_rate=config.learning_rate,
         per_device_train_batch_size=config.train_batch_size,
-        per_device_eval_batch_size=config.eval_batch_size,
         num_train_epochs=config.num_epochs,
         lr_scheduler_type=config.scheduler_type,
+        warmup_ratio=config.warmup_ratio,
         gradient_accumulation_steps=2,
+        gradient_checkpointing=True,
 
         do_eval=True,
+        per_device_eval_batch_size=config.eval_batch_size,
+        eval_accumulation_steps=2,
+        eval_do_concat_batches=False,
         eval_strategy='steps',
-        greater_is_better=False,
-        eval_steps=config.eval_steps,
+        greater_is_better=True,
+        #eval_steps=config.eval_steps,
+        eval_steps=5,
 
         logging_first_step=0,
         logging_steps=1,

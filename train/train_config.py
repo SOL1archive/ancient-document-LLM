@@ -20,18 +20,18 @@ class TrainConfig:
     train_method: Literal['full', 'LoRA', 'QLoRA'] = 'QLoRA'
     # LoRA / QLoRA Configs(only used when `train_method in ['LoRA', 'QLoRA']`)
     target_modules: List[str] = field(default_factory=lambda: ['q_proj', 'v_proj'])
-    rank: int = 8
+    rank: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.1
 
     eval_steps: int = 2500
 
     num_epochs: int = 2
-    train_batch_size: int = 4
+    train_batch_size: int = 9
     eval_batch_size: int = 2
-    learning_rate: float = 1e-5
+    learning_rate: float = 3e-4
     scheduler_type: str = 'linear'
-    warmup_ratio: float = 0.03
+    warmup_ratio: float = 0.01
 
     logging_steps: int = 1
     logging_dir: str = 'logs'

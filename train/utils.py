@@ -22,8 +22,8 @@ class Seq2SeqFormatter:
 
     def __call__(self, example):
         prompt = [
-            {'role': 'user', 'content': "Problem: " + example[self.instruction_col_name]},
-            {'role': 'assistant', 'content': " Solution: " + example[self.response_col_name]}
+            {'role': 'user', 'content': "Ancient Text: " + example[self.instruction_col_name]},
+            {'role': 'assistant', 'content': " Modern Korean: " + example[self.response_col_name]}
         ]
         if self.system_instruction is not None:
             prompt.append({'role': 'system', 'content': self.system_instruction})
