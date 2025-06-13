@@ -1,0 +1,12 @@
+icecream==2.1.4
+transformers==4.51.3
+flash-attn==2.7.4.post1
+bitsandbytes==0.45.5
+datasets==3.5.0
+peft==0.15.2
+wandb==0.19.10
+evaluate==0.4.3
+sympy==1.13.1
+rouge_score==0.1.2
+torchmetrics==1.7.2
+lightning==2.5.1
