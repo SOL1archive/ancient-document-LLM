@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TrainConfig:
-    base_model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
-    model_ckpt: str = 'Qwen/Qwen2.5-1.5B'
+    base_model_ckpt: str = 'Qwen/Qwen2.5-1.5B-Instruct'
+    model_ckpt: str = 'Qwen/Qwen2.5-1.5B-Instruct'
 
     sliding_window: int = 1024
     
@@ -26,8 +26,8 @@ class TrainConfig:
 
     eval_steps: int = 2500
 
-    num_epochs: int = 2
-    train_batch_size: int = 9
+    num_epochs: int = 1
+    train_batch_size: int = 6
     eval_batch_size: int = 2
     learning_rate: float = 3e-4
     scheduler_type: str = 'linear'
@@ -37,7 +37,7 @@ class TrainConfig:
     logging_dir: str = 'logs'
 
     eval_methods: List = field(default_factory=lambda: [
-        'bleu', 'rouge'
+        'rouge'
     ])
 
     output_model_name: str = 'silloc_translator'
